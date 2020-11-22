@@ -60,9 +60,20 @@ class Graph:
             # Select the exposed class that is a direct superclass of the
             # lowest-precedence class on the emerging class-precedence list
             selected_class = exposed_classes[0]
-            if len(exposed_classes) > 0:
-                # TO DO
-                pass
+            if len(exposed_classes) > 1:
+                found = False
+                # Iterate precedence-list in reverse order
+                for class_name in reversed(precedence_list):
+                    # For each tied class
+                    for exposed_class in exposed_classes:
+                        # Check if tied class is a direct superclass of the current item in precedence list
+                        for tuple in fhpairs[class_name]:
+                            if tuple[1] == exposed_class:
+                                selected_class = exposed_class
+                                found = True
+                                break
+                    if found:
+                        break
             
             # Add the selected class to the emerging class-precedence list
             precedence_list.append(selected_class)
@@ -87,9 +98,6 @@ def main():
     obj.ako("Teachers", "Dwarfs")
     obj.ako("Programmers", "Dwarfs")
     obj.ako("Dwarfs", "Everything")
-    # pairs = obj.fish_hook_pairs()
-    # for pair, value in pairs:
-    #     print(pair, value)
     print(obj.class_precedence_list())
 
 if __name__ == "__main__":

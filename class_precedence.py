@@ -28,7 +28,7 @@ class Graph:
         for key, values in self.items():
             pairs = []
             if len(values) == 0:
-                pairs.append((key, "Everything"))
+                pairs.append((key, "*"))
             else:
                 left = key
                 for value in values:
@@ -86,6 +86,7 @@ def main():
     obj.ako("Eccentrics", "Dwarfs")
     obj.ako("Teachers", "Dwarfs")
     obj.ako("Programmers", "Dwarfs")
+    obj.ako("Dwarfs", "Everything")
     # pairs = obj.fish_hook_pairs()
     # for pair, value in pairs:
     #     print(pair, value)

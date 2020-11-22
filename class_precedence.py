@@ -1,3 +1,6 @@
+from operator import add
+from functools import reduce
+
 '''
 Representation of a graph using adjacency lists
 '''
@@ -5,9 +8,11 @@ class Graph:
     def __init__(self):
         self.adjacency_list = {}
 
+    # Shorthand method for returning the elements in adjacency list of the graph
     def items(self):
         return self.adjacency_list.items()
 
+    # Adds an ako (a kind of) or is-a relationship to the graph as a vertex
     def ako(self, subclass, superclass):
         if subclass not in self.adjacency_list:
             self.adjacency_list[subclass] = []
@@ -17,6 +22,7 @@ class Graph:
 
         self.adjacency_list[subclass].append(superclass)
 
+    # Create fish hook pairs as a dict where keys are nodes and values are pairs
     def fish_hook_pairs(self):
         result = {}
         for key, values in self.items():
@@ -30,8 +36,44 @@ class Graph:
                     pairs.append((left, right))
                     left = right
             result[key] = pairs
-            result["Everything"] = [("Everything")]
-        return result.items()
+        return result
+
+    def class_precedence_list(self):
+        # To compute an instance's class precedence list,
+        precedence_list = []
+
+        # Create fish-hook pairs
+        fhpairs = self.fish_hook_pairs()
+        classes_list = list(fhpairs.keys())
+        pairs_list = reduce(add, list(fhpairs.values()))
+
+        # Until all the fish-hook pairs are eliminated
+        while(len(pairs_list) > 0):
+
+            # Find the exposed classes
+            exposed_classes = classes_list[:]
+            for pair in pairs_list:
+                # If a class appears on the right side of a pair, it is not exposed
+                if pair[1] in exposed_classes:
+                    exposed_classes.remove(pair[1])
+
+            # Select the exposed class that is a direct superclass of the
+            # lowest-precedence class on the emerging class-precedence list
+            selected_class = exposed_classes[0]
+            if len(exposed_classes) > 0:
+                # TO DO
+                pass
+            
+            # Add the selected class to the emerging class-precedence list
+            precedence_list.append(selected_class)
+
+            # Remove the selected class from classes list
+            classes_list = [class_name for class_name in classes_list if class_name != selected_class]
+
+            # Strike all fish-hook pairs that contain the newly added class
+            pairs_list = [pair for pair in pairs_list if pair[0] != selected_class]
+
+        return precedence_list
 
 def main():
     obj = Graph()
@@ -44,9 +86,10 @@ def main():
     obj.ako("Eccentrics", "Dwarfs")
     obj.ako("Teachers", "Dwarfs")
     obj.ako("Programmers", "Dwarfs")
-    pairs = obj.fish_hook_pairs()
-    for pair, value in pairs:
-        print(pair, value)
+    # pairs = obj.fish_hook_pairs()
+    # for pair, value in pairs:
+    #     print(pair, value)
+    print(obj.class_precedence_list())
 
 if __name__ == "__main__":
     main()

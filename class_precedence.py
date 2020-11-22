@@ -5,6 +5,9 @@ class Graph:
     def __init__(self):
         self.adjacency_list = {}
 
+    def items(self):
+        return self.adjacency_list.items()
+
     def ako(self, subclass, superclass):
         if subclass not in self.adjacency_list:
             self.adjacency_list[subclass] = []
@@ -20,7 +23,8 @@ def main():
     obj.ako("BMW", "Car")
     obj.ako("Car", "Vehicle")
     obj.ako("BMW", "Fast")
-    print(obj.adjacency_list)
+    for key, value in obj.items():
+        print(key, value)
 
 if __name__ == "__main__":
     main()

@@ -87,6 +87,8 @@ class Graph:
         return precedence_list
 
 def main():
+
+    # Example from book
     obj = Graph()
     obj.ako("Crazy", "Professors")
     obj.ako("Crazy", "Hackers")
@@ -99,6 +101,13 @@ def main():
     obj.ako("Programmers", "Dwarfs")
     obj.ako("Dwarfs", "Everything")
     print(obj.class_precedence_list())
+
+    # Part 1
+
+    # Part 2
+
+    # Part 3
+
 
 if __name__ == "__main__":
     main()

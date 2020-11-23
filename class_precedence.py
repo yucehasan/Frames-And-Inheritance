@@ -62,39 +62,47 @@ def class_precedence_lists(graph, single_stepping):
     return precedence_lists
 
 def class_precedence_list(start_node, graph, single_stepping):
+    # To compute an instance's class-precedence list
+
     precedence_list = []
     fhpairs = {} 
 
     if single_stepping:
         print("=== Computing fish hook pairs for {} ===".format(start_node))
 
+    # Create fish-hook pairs
     fish_hooks(start_node, graph, fhpairs)
 
     classes_list = list(fhpairs.keys())
 
+    # Until all the fish-hook pairs are eliminated:
     while no_of_pairs(fhpairs) > 0:
 
         if single_stepping:
             print("=== Searching for exposed classes ===")
 
+        # Find the exposed classes
         exposed_classes = find_exposed_classes(classes_list, fhpairs)
 
         if single_stepping:
             print("=== Exposed classes are {} ===".format(exposed_classes))
             print("=== Selecting next exposed classes ===")
 
+        # Select the exposed class that is a direct superclass of the lowest-precedence class on the emerging class-precedence list
         next_exposed = next_exposed_class(exposed_classes, precedence_list, graph)
 
         if single_stepping:
             print("=== Next exposed class is {} ===".format(next_exposed))
             print("=== Adding {} to precedence list ===".format(next_exposed))
 
+        # Add the selected class to the emerging class-precedence list
         precedence_list.append(next_exposed)
         classes_list.remove(next_exposed)        
 
         if single_stepping:
             print("=== Striking fish hook pairs containing {} ===\n".format(next_exposed))
-
+        
+        # Strike all fish-hook pairs that contain the newly added class
         strike_fish_hook_pairs(next_exposed, fhpairs)
 
     if single_stepping:

@@ -1,114 +1,143 @@
-from operator import add
-from functools import reduce
+part_1_graph = {
+    "ifstream" : ["istream"],
+    "istream" : ["ios"],
+    "fstream" : ["iostream"],
+    "iostream" : ["istream", "ostream"],
+    "ostream" : ["ios"],
+    "ofstream" : ["ostream", "ios"],
+    "ios" : ["Everything"],
+    "Everything" : []
+}
 
-'''
-Representation of a graph using adjacency lists
-'''
-class Graph:
-    def __init__(self):
-        self.adjacency_list = {}
+part_2_graph = {
+    "Consultant Manager" : ["Consultant", "Manager"],
+    "Consultant" : ["Temporary Employee"],
+    "Temporary Employee" : ["Employee"],
+    "Manager" : ["Employee"],
+    "Director" : ["Manager"],
+    "Permanent Manager" : ["Manager", "Permanent Employee"],
+    "Permanent Employee" : ["Employee"],
+    "Employee" : ["Everything"],
+    "Everything" : []
+}
 
-    # Shorthand method for returning the elements in adjacency list of the graph
-    def items(self):
-        return self.adjacency_list.items()
+part_3_graph = {
+    "Crazy" : ["Professors", "Hackers"],
+    "Professors" : ["Eccentrics", "Teachers"],
+    "Hackers" : ["Eccentrics", "Programmers"],
+    "Eccentrics" : ["Dwarfs"],
+    "Teachers" : ["Dwarfs"],
+    "Programmers" : ["Dwarfs"],
+    "Dwarfs" : ["Everything"],
+    "Everything" : [],
+    "Jacque" : ["Weightlifters", "Shotputters", "Athletes"],
+    "Weightlifters" : ["Athletes", "Endomorphs"],
+    "Shotputters" : ["Athletes", "Endomorphs"],
+    "Athletes" : ["Dwarfs"],
+    "Endomorphs" : ["Dwarfs"]
+}
 
-    # Adds an ako (a kind of) or is-a relationship to the graph as a vertex
-    def ako(self, subclass, superclass):
-        if subclass not in self.adjacency_list:
-            self.adjacency_list[subclass] = []
+def class_precedence_lists(graph):
+    precedence_lists = []
+    exposed_classes = list(graph.keys())
+    for key, values in graph.items():
+        for parent in values:
+            if parent in exposed_classes:
+                exposed_classes.remove(parent)
+    for exposed_class in exposed_classes:
+        precedence_lists.append(class_precedence_list(exposed_class, graph))                
+    return precedence_lists
 
-        if superclass not in self.adjacency_list:
-            self.adjacency_list[superclass] = []
+def class_precedence_list(start_node, graph):
+    precedence_list = []
 
-        self.adjacency_list[subclass].append(superclass)
+    fhpairs = {} 
+    fish_hooks(start_node, graph, fhpairs)
 
-    # Create fish hook pairs as a dict where keys are nodes and values are pairs
-    def fish_hook_pairs(self):
-        result = {}
-        for key, values in self.items():
-            pairs = []
-            if len(values) == 0:
-                pairs.append((key, "*"))
-            else:
-                left = key
-                for value in values:
-                    right = value
-                    pairs.append((left, right))
-                    left = right
-            result[key] = pairs
-        return result
+    classes_list = list(fhpairs.keys())
 
-    def class_precedence_list(self):
-        # To compute an instance's class precedence list,
-        precedence_list = []
+    while no_of_pairs(fhpairs) > 0:
+        exposed_classes = find_exposed_classes(classes_list, fhpairs)
+        next_exposed = next_exposed_class(exposed_classes, precedence_list, graph)
+        precedence_list.append(next_exposed)
+        classes_list.remove(next_exposed)
+        strike_fish_hook_pairs(next_exposed, fhpairs)
 
-        # Create fish-hook pairs
-        fhpairs = self.fish_hook_pairs()
-        classes_list = list(fhpairs.keys())
-        pairs_list = reduce(add, list(fhpairs.values()))
+    return precedence_list
 
-        # Until all the fish-hook pairs are eliminated
-        while(len(pairs_list) > 0):
+def no_of_pairs(pairs_dict):
+    count = 0
+    for pairs in pairs_dict.values():
+        count += len(pairs)
 
-            # Find the exposed classes
-            exposed_classes = classes_list[:]
-            for pair in pairs_list:
-                # If a class appears on the right side of a pair, it is not exposed
-                if pair[1] in exposed_classes:
-                    exposed_classes.remove(pair[1])
+    return count
 
-            # Select the exposed class that is a direct superclass of the
-            # lowest-precedence class on the emerging class-precedence list
-            selected_class = exposed_classes[0]
-            if len(exposed_classes) > 1:
-                found = False
-                # Iterate precedence-list in reverse order
-                for class_name in reversed(precedence_list):
-                    # For each tied class
-                    for exposed_class in exposed_classes:
-                        # Check if tied class is a direct superclass of the current item in precedence list
-                        for tuple in fhpairs[class_name]:
-                            if tuple[1] == exposed_class:
-                                selected_class = exposed_class
-                                found = True
-                                break
-                    if found:
-                        break
-            
-            # Add the selected class to the emerging class-precedence list
-            precedence_list.append(selected_class)
+def find_exposed_classes(classes_list, fhpairs):
+    exposed_classes = classes_list[:]
+    for pairs in fhpairs.values():
+        for pair in pairs:
+            if pair[1] in exposed_classes:
+                exposed_classes.remove(pair[1])
+    return exposed_classes
 
-            # Remove the selected class from classes list
-            classes_list = [class_name for class_name in classes_list if class_name != selected_class]
+def next_exposed_class(exposed_classes, precedence_list, graph):
+    if len(exposed_classes) < 1:
+        return None
+    elif len(exposed_classes) == 1:
+        return exposed_classes[0]
+    else:
+        # Iterate precedence-list in reverse order
+        for class_name in reversed(precedence_list):
+            # For each tied class
+            for exposed_class in exposed_classes:
+                # Check if tied class is a direct superclass of the current item in precedence list
+                if exposed_class in graph[class_name]:
+                    return exposed_class
 
-            # Strike all fish-hook pairs that contain the newly added class
-            pairs_list = [pair for pair in pairs_list if pair[0] != selected_class]
+def strike_fish_hook_pairs(selected_class, fhpairs):
+    for key, values in fhpairs.items():
+        for pair in values:
+            if pair[0] == selected_class:
+                fhpairs[key].remove(pair)
 
-        return precedence_list
+def fish_hooks(start_node, graph, pairs):
+    if start_node not in graph:
+        print("Error")
+        return
+    pairs[start_node] = []
+    left = start_node
+    parents = graph[start_node]
+    for parent in parents:
+        right = parent
+        pairs[start_node].append( (left, right) )
+        left = right
+
+    for parent in parents:
+        # new_pairs = [pair for pair in fish_hooks(parent, graph) if pair not in pairs]
+        # pairs = pairs + new_pairs
+        fish_hooks(parent, graph, pairs)
+    return pairs
 
 def main():
-
-    # Example from book
-    obj = Graph()
-    obj.ako("Crazy", "Professors")
-    obj.ako("Crazy", "Hackers")
-    obj.ako("Professors", "Eccentrics")
-    obj.ako("Professors", "Teachers")
-    obj.ako("Hackers", "Eccentrics")
-    obj.ako("Hackers", "Programmers")
-    obj.ako("Eccentrics", "Dwarfs")
-    obj.ako("Teachers", "Dwarfs")
-    obj.ako("Programmers", "Dwarfs")
-    obj.ako("Dwarfs", "Everything")
-    print(obj.class_precedence_list())
-
     # Part 1
+    part_1_answer = class_precedence_lists(part_1_graph)
+    for answer in part_1_answer:
+        print("Precedence list for", answer[0])
+        print(answer)
 
     # Part 2
-
+    part_2_answer = class_precedence_lists(part_2_graph)
+    for answer in part_2_answer:
+        print("Precedence list for", answer[0])
+        print(answer)
     # Part 3
-
+    part_3_answer = class_precedence_lists(part_3_graph)
+    for answer in part_3_answer:
+        print("Precedence list for", answer[0])
+        print(answer)
 
 if __name__ == "__main__":
     main()
+
+
 

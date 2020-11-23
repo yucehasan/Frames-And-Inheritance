@@ -37,31 +37,69 @@ part_3_graph = {
     "Endomorphs" : ["Dwarfs"]
 }
 
-def class_precedence_lists(graph):
+def class_precedence_lists(graph, single_stepping):
     precedence_lists = []
+
+    if single_stepping:
+        print("=== Searching for entry nodes ===")
+
     exposed_classes = list(graph.keys())
     for key, values in graph.items():
         for parent in values:
             if parent in exposed_classes:
                 exposed_classes.remove(parent)
+
+    if single_stepping:
+        print("=== Entry nodes are {} ===\n".format(exposed_classes))
+    
     for exposed_class in exposed_classes:
-        precedence_lists.append(class_precedence_list(exposed_class, graph))                
+
+        if single_stepping:
+            print("=== Computing class precedence list for {} ===".format(exposed_class))
+
+        precedence_lists.append(class_precedence_list(exposed_class, graph, single_stepping))        
+
     return precedence_lists
 
-def class_precedence_list(start_node, graph):
+def class_precedence_list(start_node, graph, single_stepping):
     precedence_list = []
-
     fhpairs = {} 
+
+    if single_stepping:
+        print("=== Computing fish hook pairs for {} ===".format(start_node))
+
     fish_hooks(start_node, graph, fhpairs)
 
     classes_list = list(fhpairs.keys())
 
     while no_of_pairs(fhpairs) > 0:
+
+        if single_stepping:
+            print("=== Searching for exposed classes ===")
+
         exposed_classes = find_exposed_classes(classes_list, fhpairs)
+
+        if single_stepping:
+            print("=== Exposed classes are {} ===".format(exposed_classes))
+            print("=== Selecting next exposed classes ===")
+
         next_exposed = next_exposed_class(exposed_classes, precedence_list, graph)
+
+        if single_stepping:
+            print("=== Next exposed class is {} ===".format(next_exposed))
+            print("=== Adding {} to precedence list ===".format(next_exposed))
+
         precedence_list.append(next_exposed)
-        classes_list.remove(next_exposed)
+        classes_list.remove(next_exposed)        
+
+        if single_stepping:
+            print("=== Striking fish hook pairs containing {} ===\n".format(next_exposed))
+
         strike_fish_hook_pairs(next_exposed, fhpairs)
+
+    if single_stepping:
+        print("=== No fish hook pair left ===")
+        print("=== Finished calculating class precedence list of {} ===\n".format(start_node))
 
     return precedence_list
 
@@ -69,7 +107,6 @@ def no_of_pairs(pairs_dict):
     count = 0
     for pairs in pairs_dict.values():
         count += len(pairs)
-
     return count
 
 def find_exposed_classes(classes_list, fhpairs):
@@ -119,21 +156,28 @@ def fish_hooks(start_node, graph, pairs):
     return pairs
 
 def main():
+    choice = input("Do you want single stepping? (y/n)") in ["y", "Y", "yes", "Yes", "YES"]
     # Part 1
-    part_1_answer = class_precedence_lists(part_1_graph)
+    print("Solution for part 1:")
+    part_1_answer = class_precedence_lists(part_1_graph, choice)
     for answer in part_1_answer:
-        print("Precedence list for", answer[0])
+        print("\nPrecedence list for", answer[0])
         print(answer)
 
     # Part 2
-    part_2_answer = class_precedence_lists(part_2_graph)
+    input("Press Enter to continue")
+    print("Solution for part 2:")
+    part_2_answer = class_precedence_lists(part_2_graph, choice)
     for answer in part_2_answer:
-        print("Precedence list for", answer[0])
+        print("\nPrecedence list for", answer[0])
         print(answer)
+
     # Part 3
-    part_3_answer = class_precedence_lists(part_3_graph)
+    input("Press Enter to continue")
+    print("Solution for part 3:")
+    part_3_answer = class_precedence_lists(part_3_graph, choice)
     for answer in part_3_answer:
-        print("Precedence list for", answer[0])
+        print("\nPrecedence list for", answer[0])
         print(answer)
 
 if __name__ == "__main__":
